@@ -1,5 +1,7 @@
 # Freki
 
+[![CI](https://github.com/rzo1/freki/actions/workflows/ci.yml/badge.svg)](https://github.com/rzo1/freki/actions/workflows/ci.yml)
+
 <img src="docs/logo.png" alt="Freki logo" width="200" align="right">
 
 > *Freki, "the greedy one" — one of Odin's two wolves, who devours everything
