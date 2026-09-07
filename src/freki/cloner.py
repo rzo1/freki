@@ -270,8 +270,13 @@ class GitCloner:
             return f"failed: {exc.stderr.strip()}"
 
     def _default_ref(self, mirror: Path, preferred: str | None) -> str | None:
-        """Name of the branch to check out: ``preferred`` if it exists in the
-        mirror, otherwise the mirror's HEAD (the remote's default branch)."""
+        """Name of the branch to check out.
+
+        Tries, in order: ``preferred`` (the project's default branch), the
+        mirror's HEAD, ``main``/``master``, and finally the first branch that
+        exists — a mirror can have a dangling HEAD (e.g. the remote's default
+        branch was deleted) and should still get a checkout.
+        """
         candidates = [f"refs/heads/{preferred}"] if preferred else []
         try:
             head = self._run(["symbolic-ref", "-q", "HEAD"], cwd=mirror).stdout.strip()
@@ -279,13 +284,17 @@ class GitCloner:
                 candidates.append(head)
         except GitError:
             pass
+        candidates += ["refs/heads/main", "refs/heads/master"]
         for ref in candidates:
             try:
                 self._run(["rev-parse", "--verify", "-q", f"{ref}^{{commit}}"], cwd=mirror)
                 return ref
             except GitError:
                 continue
-        return None
+        branches = self._run(
+            ["for-each-ref", "--format=%(refname)", "--count=1", "refs/heads/"], cwd=mirror
+        ).stdout.strip()
+        return branches or None
 
     def _checkout(self, mirror: Path, target: Path, branch: str | None) -> str:
         """Maintain a detached worktree of ``branch`` (default branch) at ``target``.

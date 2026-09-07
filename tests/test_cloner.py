@@ -404,7 +404,7 @@ def test_real_mirror_clone_and_update(tmp_path: Path) -> None:
     _git("add", ".", cwd=work)
     _git("commit", "-q", "-m", "one", cwd=work)
     _git("tag", "v1", cwd=work)
-    _git("init", "-q", "--bare", str(remote), cwd=tmp_path)
+    _git("init", "-q", "--bare", "-b", "main", str(remote), cwd=tmp_path)
     _git("remote", "add", "origin", str(remote), cwd=work)
     _git("push", "-q", "origin", "main", "v1", cwd=work)
 
@@ -512,7 +512,7 @@ def test_relative_output_dir_checkout(tmp_path: Path, monkeypatch: pytest.Monkey
     (work / "a.txt").write_text("one\n")
     _git("add", ".", cwd=work)
     _git("commit", "-q", "-m", "one", cwd=work)
-    _git("init", "-q", "--bare", str(remote), cwd=tmp_path)
+    _git("init", "-q", "--bare", "-b", "main", str(remote), cwd=tmp_path)
     _git("push", "-q", str(remote), "main", cwd=work)
     project = ProjectInfo(1, "ns/demo", remote.as_uri(), default_branch="main")
 
@@ -558,3 +558,23 @@ def test_exporter_hook_and_partial_note(tmp_path: Path) -> None:
     cloner.dry_run = True
     with patch.object(GitCloner, "_run", side_effect=Recorder()):
         assert cloner.clone_or_update(make_project()).status == "skipped"
+
+
+def test_checkout_falls_back_when_head_dangling(tmp_path: Path) -> None:
+    """A mirror whose HEAD points to a deleted/never-born branch still gets a checkout."""
+    work = tmp_path / "work"
+    remote = tmp_path / "remote.git"
+    work.mkdir()
+    _git("init", "-q", "-b", "trunk", cwd=work)
+    (work / "a.txt").write_text("x\n")
+    _git("add", ".", cwd=work)
+    _git("commit", "-q", "-m", "one", cwd=work)
+    # remote HEAD points at 'gone', which is never pushed
+    _git("init", "-q", "--bare", "-b", "gone", str(remote), cwd=tmp_path)
+    _git("push", "-q", str(remote), "trunk", cwd=work)
+
+    project = ProjectInfo(1, "ns/dangling", remote.as_uri())
+    cloner = GitCloner(tmp_path / "out", TOKEN, clone_wiki=False, clone_lfs=False)
+    result = cloner.clone_or_update(project)
+    assert result.checkout_status == "checked out", result
+    assert (tmp_path / "out/ns/dangling/a.txt").read_text() == "x\n"
