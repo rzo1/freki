@@ -344,9 +344,8 @@ def test_clone_all_preserves_order(tmp_path: Path) -> None:
 
 
 def _git(*args: str, cwd: Path) -> str:
-    return subprocess.run(
-        ["git", *args], cwd=cwd, check=True, capture_output=True, text=True
-    ).stdout.strip()
+    cmd = ["git", "-c", "user.email=test@example.org", "-c", "user.name=Test", *args]
+    return subprocess.run(cmd, cwd=cwd, check=True, capture_output=True, text=True).stdout.strip()
 
 
 def test_real_credential_helper_overrides_store_and_never_persists(

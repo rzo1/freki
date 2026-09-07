@@ -8,7 +8,7 @@ authors = [
 ]
 license = "MIT"
 license-files = ["LICENSE"]
-requires-python = ">=3.11"
+requires-python = ">=3.14"
 dependencies = [
     "pydantic-settings>=2.15.0",
     "python-gitlab>=8.5.0",
@@ -32,7 +32,7 @@ dev = [
 
 [tool.ruff]
 line-length = 100
-target-version = "py311"
+target-version = "py314"
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "UP", "B"]

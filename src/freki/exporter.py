@@ -190,7 +190,7 @@ class IssueExporter:
             return {}
         try:
             return json.loads(path.read_text(encoding="utf-8"))
-        except (OSError, ValueError):
+        except OSError, ValueError:
             return {}
 
     @staticmethod

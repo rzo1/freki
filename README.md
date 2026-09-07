@@ -36,7 +36,7 @@ only issues/MRs that changed are re-exported. Nothing is ever deleted locally.
 
 ## Requirements
 
-- Python >= 3.11 and [uv](https://docs.astral.sh/uv/)
+- Python >= 3.14 and [uv](https://docs.astral.sh/uv/)
 - `git` on `PATH`
 - `git-lfs` on `PATH` (only needed for LFS content; see below)
 - A GitLab PAT with the `read_api` scope (used for discovery via the API).
@@ -199,6 +199,13 @@ Contributions welcome — run the checks before opening a PR:
 uv run ruff format --check .
 uv run ruff check .
 uv run pytest
+```
+
+Lint hooks are defined in `.pre-commit-config.yaml`; install them with
+[prek](https://github.com/j178/prek) (or classic pre-commit):
+
+```bash
+uvx prek install      # or: uvx pre-commit install
 ```
 
 ## License
